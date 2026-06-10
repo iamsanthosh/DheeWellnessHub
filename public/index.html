@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loading…</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════
+   TOKENS
+══════════════════════════════════════ */
+:root {
+  --teal:        #0f766e;
+  --teal-dark:   #0d5f58;
+  --teal-light:  #ccfbf1;
+  --teal-mid:    #14b8a6;
+  --charcoal:    #111827;
+  --charcoal-2:  #1f2937;
+  --amber:       #f59e0b;
+  --amber-light: #fef3c7;
+  --sand:        #fafaf9;
+  --white:       #ffffff;
+  --muted:       #6b7280;
+  --border:      #e5e7eb;
+  --border-dark: #d1d5db;
+  --green:       #059669;
+  --green-bg:    #d1fae5;
+  --red:         #dc2626;
+  --red-bg:      #fee2e2;
+  --yellow:      #d97706;
+  --yellow-bg:   #fef3c7;
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.07);
+  --shadow-md:   0 4px 16px rgba(0,0,0,0.09);
+  --shadow-lg:   0 12px 40px rgba(0,0,0,0.12);
+  --r:           10px;
+  --r-lg:        16px;
+}
+
+/* ── RESET ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--sand);
+  color: var(--charcoal);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ── VIEWS ── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ══════════════════════════════════════
+   GLOBAL LOADER
+══════════════════════════════════════ */
+#appLoader {
+  position: fixed; inset: 0;
+  background: var(--charcoal);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 16px;
+  z-index: 9999;
+  transition: opacity 0.4s, visibility 0.4s;
+}
+#appLoader.hidden { opacity: 0; visibility: hidden; }
+.loader-logo { font-family: 'DM Serif Display', serif; font-size: 2rem; color: white; }
+.loader-logo span { color: var(--teal-mid); }
+.loader-bar { width: 120px; height: 2px; background: rgba(255,255,255,0.15); border-radius: 999px; overflow: hidden; }
+.loader-bar::after { content: ''; display: block; height: 100%; width: 40%; background: var(--teal-mid); border-radius: 999px; animation: loadSlide 1.2s ease-in-out infinite; }
+@keyframes loadSlide { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
+
+/* ══════════════════════════════════════
+   NAV
+══════════════════════════════════════ */
+.nav {
+  background: var(--charcoal);
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px;
+  position: sticky; top: 0; z-index: 200;
+}
+.nav-logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.35rem;
+  color: white;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 10px;
+}
+.nav-logo em { color: var(--teal-mid); font-style: normal; }
+.nav-tagline { font-size: 0.7rem; color: rgba(255,255,255,0.35); font-weight: 400; margin-top: 1px; display: none; }
+@media (min-width: 640px) { .nav-tagline { display: block; } }
+.nav-right { display: flex; align-items: center; gap: 10px; }
+.cart-trigger {
+  display: flex; align-items: center; gap: 7px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: white;
+  padding: 7px 14px;
+  border-radius: var(--r);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.83rem; font-weight: 500;
+  transition: background 0.15s;
+}
+.cart-trigger:hover { background: rgba(255,255,255,0.13); }
+.cart-badge {
+  background: var(--amber);
+  color: var(--charcoal);
+  border-radius: 999px;
+  min-width: 18px; height: 18px;
+  font-size: 0.65rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 4px;
+}
+.btn-ghost-white {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.7);
+  padding: 7px 14px;
+  border-radius: var(--r);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.83rem; font-weight: 500;
+  transition: all 0.15s;
+}
+.btn-ghost-white:hover { border-color: rgba(255,255,255,0.5); color: white; }
+
+/* ══════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════ */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; font-family: 'DM Sans', sans-serif; border: none; border-radius: var(--r); transition: all 0.18s; font-weight: 600; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-teal { background: var(--teal); color: white; padding: 11px 24px; font-size: 0.9rem; }
+.btn-teal:hover:not(:disabled) { background: var(--teal-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(15,118,110,0.35); }
+.btn-amber { background: var(--amber); color: var(--charcoal); padding: 11px 24px; font-size: 0.9rem; font-weight: 700; }
+.btn-amber:hover:not(:disabled) { background: #e08b05; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(245,158,11,0.35); }
+.btn-outline { background: transparent; border: 1.5px solid var(--border-dark); color: var(--charcoal); padding: 10px 22px; font-size: 0.875rem; }
+.btn-outline:hover { border-color: var(--charcoal); }
+.btn-sm { padding: 7px 14px !important; font-size: 0.8rem !important; }
+.btn-full { width: 100%; }
+
+/* ══════════════════════════════════════
+   HERO
+══════════════════════════════════════ */
+.hero {
+  background: var(--charcoal);
+  padding: 80px 24px 88px;
+  position: relative; overflow: hidden;
+}
+/* Signature element: teal ruled lines in the background — editorial feel */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: repeating-linear-gradient(
+    0deg, transparent, transparent 59px,
+    rgba(20,184,166,0.06) 59px, rgba(20,184,166,0.06) 60px
+  );
+  pointer-events: none;
+}
+.hero-inner { max-width: 820px; margin: 0 auto; position: relative; z-index: 1; }
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(20,184,166,0.12);
+  border: 1px solid rgba(20,184,166,0.25);
+  color: var(--teal-mid);
+  font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em;
+  padding: 6px 14px; border-radius: 999px;
+  margin-bottom: 28px;
+}
+.hero-headline {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  line-height: 1.1;
+  color: white;
+  margin-bottom: 22px;
+}
+.hero-headline .accent-word {
+  color: var(--teal-mid);
+  font-style: italic;
+}
+.hero-sub {
+  font-size: 1rem; color: rgba(255,255,255,0.6);
+  max-width: 540px; margin-bottom: 40px; line-height: 1.7;
+}
+.hero-stats {
+  display: flex; gap: 0; flex-wrap: wrap;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--r-lg); overflow: hidden;
+  max-width: 480px;
+}
+.hero-stat {
+  flex: 1; min-width: 140px;
+  padding: 20px 24px;
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+.hero-stat:last-child { border-right: none; }
+.hero-stat-val {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.6rem; color: white; display: block; line-height: 1.1; margin-bottom: 4px;
+}
+.hero-stat-lbl { font-size: 0.75rem; color: rgba(255,255,255,0.45); }
+
+/* ══════════════════════════════════════
+   COURSES SECTION
+══════════════════════════════════════ */
+.section { max-width: 1100px; margin: 0 auto; padding: 56px 24px; }
+.section-head { margin-bottom: 36px; }
+.section-title { font-family: 'DM Serif Display', serif; font-size: 1.9rem; color: var(--charcoal); margin-bottom: 6px; }
+.section-sub { color: var(--muted); font-size: 0.9rem; }
+
+.courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+
+.course-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex; flex-direction: column;
+}
+.course-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+
+.cc-stripe {
+  height: 4px;
+  background: linear-gradient(90deg, var(--teal), var(--teal-mid));
+}
+.cc-stripe.cat-design     { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+.cc-stripe.cat-marketing  { background: linear-gradient(90deg, #d97706, #fbbf24); }
+.cc-stripe.cat-data       { background: linear-gradient(90deg, #1d4ed8, #60a5fa); }
+
+.cc-body { padding: 22px 22px 0; flex: 1; }
+.cc-tag {
+  display: inline-block;
+  background: var(--teal-light); color: var(--teal-dark);
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 999px; margin-bottom: 10px;
+}
+.cc-name { font-family: 'DM Serif Display', serif; font-size: 1.15rem; line-height: 1.3; color: var(--charcoal); margin-bottom: 6px; }
+.cc-batch { font-size: 0.8rem; color: var(--muted); margin-bottom: 14px; }
+.cc-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.cc-meta-item { display: flex; align-items: center; gap: 5px; font-size: 0.78rem; color: var(--muted); }
+.cc-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.55; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+
+.cc-footer { padding: 16px 22px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.cc-price { font-family: 'DM Serif Display', serif; font-size: 1.45rem; color: var(--charcoal); }
+.cc-price small { font-family: 'DM Sans', sans-serif; font-size: 0.72rem; color: var(--muted); font-weight: 400; }
+.cc-seats { font-size: 0.75rem; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
+.seats-ok  { background: var(--green-bg); color: var(--green); }
+.seats-few { background: var(--yellow-bg); color: var(--yellow); }
+.seats-nil { background: var(--red-bg); color: var(--red); }
+
+.cc-action { padding: 0 22px 20px; }
+
+/* ══════════════════════════════════════
+   CART VIEW
+══════════════════════════════════════ */
+.page-header {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 24px;
+}
+.breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); margin-bottom: 6px; }
+.breadcrumb a { color: var(--teal); cursor: pointer; }
+.breadcrumb a:hover { text-decoration: underline; }
+.page-title { font-family: 'DM Serif Display', serif; font-size: 1.6rem; }
+.page-sub   { color: var(--muted); font-size: 0.875rem; margin-top: 3px; }
+
+.cart-wrap { max-width: 760px; margin: 0 auto; padding: 36px 24px; }
+.cart-item {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 18px 20px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+}
+.ci-info h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 3px; }
+.ci-info p  { font-size: 0.78rem; color: var(--muted); }
+.ci-right   { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+.ci-price   { font-family: 'DM Serif Display', serif; font-size: 1.1rem; }
+.btn-remove { background: var(--red-bg); color: var(--red); border: none; border-radius: 7px; padding: 5px 11px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+.btn-remove:hover { background: #fca5a5; }
+
+.cart-summary {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  margin-top: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.summary-line { display: flex; justify-content: space-between; font-size: 0.875rem; color: var(--muted); margin-bottom: 10px; }
+.summary-total { display: flex; justify-content: space-between; font-family: 'DM Serif Display', serif; font-size: 1.3rem; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 4px; }
+
+.empty-state { text-align: center; padding: 64px 24px; }
+.empty-icon  { font-size: 3.5rem; margin-bottom: 16px; }
+.empty-title { font-family: 'DM Serif Display', serif; font-size: 1.4rem; margin-bottom: 8px; }
+.empty-sub   { color: var(--muted); margin-bottom: 24px; font-size: 0.9rem; }
+
+/* ══════════════════════════════════════
+   PAYMENT VIEW
+══════════════════════════════════════ */
+.payment-wrap { max-width: 780px; margin: 0 auto; padding: 36px 24px; }
+.payment-cols { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; }
+@media (max-width: 640px) { .payment-cols { grid-template-columns: 1fr; } }
+
+.qr-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 28px 24px;
+  text-align: center; box-shadow: var(--shadow-sm);
+}
+.qr-card h3 { font-family: 'DM Serif Display', serif; font-size: 1.1rem; margin-bottom: 20px; }
+.qr-frame {
+  width: 164px; height: 164px;
+  margin: 0 auto 16px;
+  border-radius: var(--r);
+  border: 2px solid var(--border);
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--sand);
+}
+.qr-frame img { width: 100%; height: 100%; object-fit: contain; }
+.qr-upi-id    { font-size: 0.8rem; font-weight: 700; color: var(--charcoal); margin-bottom: 4px; }
+.qr-upi-sub   { font-size: 0.72rem; color: var(--muted); }
+
+.amount-pill {
+  background: var(--charcoal);
+  color: white;
+  border-radius: var(--r);
+  padding: 18px 20px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.amount-pill .lbl { font-size: 0.75rem; opacity: 0.55; margin-bottom: 4px; }
+.amount-pill .val { font-family: 'DM Serif Display', serif; font-size: 2rem; }
+
+.warning-strip {
+  background: var(--amber-light);
+  border: 1px solid #fde68a;
+  border-radius: var(--r);
+  padding: 12px 14px;
+  font-size: 0.78rem;
+  color: var(--yellow);
+  line-height: 1.5;
+}
+
+.form-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 28px 24px;
+  box-shadow: var(--shadow-sm);
+}
+.form-card h3 { font-family: 'DM Serif Display', serif; font-size: 1.1rem; margin-bottom: 20px; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--charcoal-2); margin-bottom: 5px; letter-spacing: 0.02em; }
+.field input, .field select {
+  width: 100%; border: 1.5px solid var(--border);
+  border-radius: var(--r); padding: 10px 13px;
+  font-family: 'DM Sans', sans-serif; font-size: 0.875rem;
+  background: var(--sand); color: var(--charcoal);
+  outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field input:focus, .field select:focus {
+  border-color: var(--teal);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(15,118,110,0.1);
+}
+.field input::placeholder { color: #aaa; }
+
+/* ══════════════════════════════════════
+   STATUS VIEW
+══════════════════════════════════════ */
+.status-wrap { max-width: 520px; margin: 0 auto; padding: 64px 24px; text-align: center; }
+.status-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 40px 36px;
+  box-shadow: var(--shadow-md);
+}
+.status-emoji { font-size: 3.5rem; margin-bottom: 20px; }
+.status-title { font-family: 'DM Serif Display', serif; font-size: 1.7rem; margin-bottom: 12px; }
+.status-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 16px; border-radius: 999px;
+  font-size: 0.8rem; font-weight: 700; margin-bottom: 20px;
+}
+.badge-pending  { background: var(--yellow-bg); color: var(--yellow); }
+.badge-verified { background: var(--green-bg); color: var(--green); }
+.badge-rejected { background: var(--red-bg); color: var(--red); }
+.status-body, .status-note { color: var(--muted); font-size: 0.875rem; line-height: 1.65; margin-bottom: 14px; }
+.status-note { font-size: 0.82rem; }
+.timeline { text-align: left; margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px; display: flex; flex-direction: column; gap: 0; }
+.tl-item { display: flex; align-items: flex-start; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.tl-item:last-child { border-bottom: none; }
+.tl-dot {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 800; flex-shrink: 0;
+}
+.tl-done   { background: var(--green); color: white; }
+.tl-active { background: var(--amber); color: var(--charcoal); }
+.tl-future { background: var(--border); color: var(--muted); }
+.tl-text strong { display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 2px; }
+.tl-text span   { font-size: 0.78rem; color: var(--muted); }
+
+/* ══════════════════════════════════════
+   FOOTER
+══════════════════════════════════════ */
+.footer {
+  background: var(--charcoal-2);
+  color: rgba(255,255,255,0.45);
+  text-align: center;
+  padding: 28px 24px;
+  font-size: 0.8rem;
+}
+.footer-brand { font-family: 'DM Serif Display', serif; color: rgba(255,255,255,0.7); font-size: 1rem; margin-bottom: 6px; }
+.footer-brand em { color: var(--teal-mid); font-style: normal; }
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+#toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--charcoal); color: white;
+  padding: 11px 18px; border-radius: var(--r);
+  font-size: 0.85rem; font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(60px); opacity: 0;
+  transition: all 0.28s; z-index: 9999; max-width: 300px;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.success { background: var(--green); }
+#toast.error   { background: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- GLOBAL LOADER -->
+<div id="appLoader">
+  <div class="loader-logo">Edu<span>Enroll</span></div>
+  <div class="loader-bar"></div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ══════════════════════════════
+     VIEW: HOME
+══════════════════════════════ -->
+<div id="view-home" class="view active">
+  <nav class="nav">
+    <div class="nav-logo" onclick="show('home')">
+      <div>
+        <div data-ui="nav.logo">DheeWellnessHub</div>
+        <div class="nav-tagline" data-ui="nav.tagline">Live Online Courses</div>
+      </div>
+    </div>
+    <div class="nav-right">
+      <button class="cart-trigger" onclick="show('cart')">
+        🛒 <span data-ui="nav.cart_button">Cart</span>
+        <span class="cart-badge" id="cartBadge">0</span>
+      </button>
+      <button class="btn-ghost-white" onclick="window.location.href='admin.html'" data-ui="nav.admin_button">Admin</button>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-eyebrow" data-ui="hero.eyebrow">🎓 Enrollments Open</div>
+      <h1 class="hero-headline">
+        <span data-ui="hero.title_line1">Skills that open</span><br>
+        <em class="accent-word" data-ui="hero.title_line2">doors.</em>
+      </h1>
+      <p class="hero-sub" data-ui="hero.subtitle">Expert-led live batches with hands-on projects.</p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-val" data-ui="hero.stat1_value">1,200+</span>
+          <span class="hero-stat-lbl" data-ui="hero.stat1_label">Students trained</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-val" data-ui="hero.stat2_value">4.9 ★</span>
+          <span class="hero-stat-lbl" data-ui="hero.stat2_label">Average rating</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-val" data-ui="hero.stat3_value">92%</span>
+          <span class="hero-stat-lbl" data-ui="hero.stat3_label">Placement rate</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section">
+    <div class="section-head">
+      <h2 class="section-title" data-ui="courses.section_title">Available Batches</h2>
+      <p class="section-sub" data-ui="courses.section_sub">Pick a batch — seats fill fast.</p>
+    </div>
+    <div class="courses-grid" id="coursesGrid">
+      <p style="color:var(--muted)" data-ui="courses.loading">Loading courses…</p>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-brand">Edu<em>Enroll</em> — <span data-ui="nav.logo_suffix"></span></div>
+    <div data-ui="footer.tagline">Transforming careers, one batch at a time.</div>
+    <div style="margin-top:6px" data-ui="footer.copyright">© 2025 DheeWellnessHub</div>
+  </footer>
+</div>
+
+<!-- ══════════════════════════════
+     VIEW: CART
+══════════════════════════════ -->
+<div id="view-cart" class="view">
+  <nav class="nav">
+    <div class="nav-logo" onclick="show('home')">Edu<em style="color:var(--teal-mid);font-style:normal" data-ui="nav.logo">Enroll</em></div>
+    <div class="nav-right">
+      <button class="btn-ghost-white btn-sm" onclick="show('home')">← Browse</button>
+    </div>
+  </nav>
+  <div class="page-header">
+    <div class="breadcrumb">
+      <a onclick="show('home')" data-ui="cart.breadcrumb_home">Home</a> /
+      <span data-ui="cart.breadcrumb_self">Cart</span>
+    </div>
+    <h1 class="page-title" data-ui="cart.title">Your Cart</h1>
+    <p class="page-sub" data-ui="cart.subtitle">Review your courses before paying.</p>
+  </div>
+  <div class="cart-wrap" id="cartWrap"></div>
+</div>
+
+<!-- ══════════════════════════════
+     VIEW: PAYMENT
+══════════════════════════════ -->
+<div id="view-payment" class="view">
+  <nav class="nav">
+    <div class="nav-logo" onclick="show('home')">Edu<em style="color:var(--teal-mid);font-style:normal">Enroll</em></div>
+    <div class="nav-right">
+      <button class="btn-ghost-white btn-sm" onclick="show('cart')">← Back</button>
+    </div>
+  </nav>
+  <div class="page-header">
+    <div class="breadcrumb">
+      <a onclick="show('home')" data-ui="cart.breadcrumb_home">Home</a> /
+      <a onclick="show('cart')" data-ui="cart.breadcrumb_self">Cart</a> /
+      <span data-ui="payment.breadcrumb_payment">Payment</span>
+    </div>
+    <h1 class="page-title" data-ui="payment.title">Complete your payment</h1>
+    <p class="page-sub" data-ui="payment.subtitle">Scan the QR, pay the exact amount, then fill in your details.</p>
+  </div>
+  <div class="payment-wrap">
+    <div class="payment-cols">
+      <!-- QR SIDE -->
+      <div>
+        <div class="qr-card">
+          <h3 data-ui="payment.qr_heading">Scan &amp; Pay</h3>
+          <div class="qr-frame"><img id="qrImg" src="" alt="QR Code"></div>
+          <div class="qr-upi-id" id="qrUpiId"></div>
+          <div class="qr-upi-sub" data-ui="payment.qr_subtext">Use any UPI app</div>
+        </div>
+        <div style="height:16px"></div>
+        <div class="amount-pill">
+          <div class="lbl" data-ui="payment.amount_label">Amount to pay</div>
+          <div class="val" id="payTotal">₹0</div>
+        </div>
+        <div class="warning-strip" data-ui="payment.warning_text">
+          After paying, note your UTR / Transaction ID.
+        </div>
+      </div>
+      <!-- FORM SIDE -->
+      <div class="form-card">
+        <h3 data-ui="payment.form_heading">Enter payment details</h3>
+        <div class="field">
+          <label data-ui="payment.field_name">Full Name</label>
+          <input type="text" id="p_name" data-placeholder-ui="payment.placeholder_name" placeholder="Your full name">
+        </div>
+        <div class="field">
+          <label data-ui="payment.field_email">Email Address</label>
+          <input type="email" id="p_email" data-placeholder-ui="payment.placeholder_email" placeholder="you@email.com">
+        </div>
+        <div class="field">
+          <label data-ui="payment.field_phone">Phone Number</label>
+          <input type="tel" id="p_phone" data-placeholder-ui="payment.placeholder_phone" placeholder="10-digit mobile number">
+        </div>
+        <div class="field">
+          <label data-ui="payment.field_utr">UTR / Transaction ID</label>
+          <input type="text" id="p_utr" data-placeholder-ui="payment.placeholder_utr" placeholder="12-digit UTR">
+        </div>
+        <div class="field">
+          <label data-ui="payment.field_date">Payment Date</label>
+          <input type="date" id="p_date">
+        </div>
+        <button class="btn btn-amber btn-full" id="submitBtn" onclick="submitPayment()">
+          <span data-ui="payment.submit_btn">Submit Payment</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     VIEW: STATUS
+══════════════════════════════ -->
+<div id="view-status" class="view">
+  <nav class="nav">
+    <div class="nav-logo" onclick="show('home')">Edu<em style="color:var(--teal-mid);font-style:normal">Enroll</em></div>
+  </nav>
+  <div class="status-wrap">
+    <div class="status-card">
+      <div class="status-emoji" data-ui="status.icon">🎉</div>
+      <h2 class="status-title" data-ui="status.title">Payment submitted!</h2>
+      <div class="status-badge badge-pending">⏳ <span data-ui="status.badge_text">Pending Verification</span></div>
+      <p class="status-body" data-ui="status.body">Your payment details have been received.</p>
+      <p class="status-note" data-ui="status.note">Check your email for a confirmation.</p>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot tl-done">✓</div>
+          <div class="tl-text">
+            <strong data-ui="status.step1_title">Payment submitted</strong>
+            <span data-ui="status.step1_sub">UTR recorded</span>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot tl-active">2</div>
+          <div class="tl-text">
+            <strong data-ui="status.step2_title">Admin verification</strong>
+            <span data-ui="status.step2_sub">We match with bank statement</span>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot tl-future">3</div>
+          <div class="tl-text">
+            <strong data-ui="status.step3_title">Enrollment confirmed</strong>
+            <span data-ui="status.step3_sub">WhatsApp group invite sent</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:28px">
+        <button class="btn btn-outline btn-full" onclick="show('home')" data-ui="status.back_btn">← Back to home</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// CONFIG — set your Netlify site URL
+// ══════════════════════════════════════
+const API = ''; // e.g. 'https://your-site.netlify.app' — blank = same origin
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let ui       = {};   // key → value for all UI text
+let settings = {};   // key → value for site settings
+let courses  = [];   // active courses from Supabase
+let cart     = JSON.parse(sessionStorage.getItem('cart') || '[]');
+
+// ══════════════════════════════════════
+// BOOT — load everything from Supabase
+// ══════════════════════════════════════
+async function boot() {
+  try {
+    const res = await fetch(`${API}/api/public-data`);
+    if (!res.ok) throw new Error('Failed to load');
+    const data = await res.json();
+    ui       = data.ui       || {};
+    settings = data.settings || {};
+    courses  = data.courses  || [];
+  } catch (e) {
+    console.warn('Could not reach API, using built-in defaults.', e);
+    // fallback: DOM already has hardcoded defaults — just continue
+  }
+
+  applyUI();
+  applySettings();
+  renderCourses();
+  updateBadge();
+
+  // Fade out loader
+  document.getElementById('appLoader').classList.add('hidden');
+}
+
+// ══════════════════════════════════════
+// APPLY UI CONTENT to DOM
+// ══════════════════════════════════════
+function applyUI() {
+  // Text content
+  document.querySelectorAll('[data-ui]').forEach(el => {
+    const key = el.getAttribute('data-ui');
+    if (ui[key] !== undefined) el.textContent = ui[key];
+  });
+  // Placeholder attributes
+  document.querySelectorAll('[data-placeholder-ui]').forEach(el => {
+    const key = el.getAttribute('data-placeholder-ui');
+    if (ui[key] !== undefined) el.placeholder = ui[key];
+  });
+  // Page title
+  if (settings.site_name) document.title = settings.site_name;
+}
+
+function applySettings() {
+  if (settings.primary_color) {
+    document.documentElement.style.setProperty('--teal', settings.primary_color);
+  }
+  if (settings.accent_color) {
+    document.documentElement.style.setProperty('--amber', settings.accent_color);
+  }
+}
+
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+function show(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  window.scrollTo(0, 0);
+  if (view === 'cart')    renderCart();
+  if (view === 'payment') renderPaymentPage();
+}
+
+// ══════════════════════════════════════
+// COURSES
+// ══════════════════════════════════════
+function stripeClass(tag) {
+  const t = (tag || '').toLowerCase();
+  if (t.includes('design'))    return 'cat-design';
+  if (t.includes('market'))    return 'cat-marketing';
+  if (t.includes('data'))      return 'cat-data';
+  return '';
+}
+
+function renderCourses() {
+  const grid = document.getElementById('coursesGrid');
+  if (!courses.length) {
+    grid.innerHTML = `<p style="color:var(--muted);grid-column:1/-1">${ui['courses.no_courses'] || 'No courses available right now.'}</p>`;
+    return;
+  }
+  grid.innerHTML = courses.map(c => {
+    const left = c.total_seats - c.enrolled;
+    const seatsClass = left <= 0 ? 'seats-nil' : left <= 5 ? 'seats-few' : 'seats-ok';
+    const seatsLabel = left <= 0
+      ? (ui['courses.batch_full_label'] || 'Full')
+      : `${left} ${ui['courses.seats_left'] || 'seats left'}`;
+    const inCart = cart.find(i => i.id === c.id);
+    let actionBtn = '';
+    if (left <= 0) {
+      actionBtn = `<button class="btn btn-outline btn-full" disabled>${ui['courses.full_btn'] || 'Batch Full'}</button>`;
+    } else if (inCart) {
+      actionBtn = `<button class="btn btn-teal btn-full" onclick="show('cart')">${ui['courses.in_cart_btn'] || '✓ In Cart'}</button>`;
+    } else {
+      actionBtn = `<button class="btn btn-amber btn-full" onclick="addToCart(${c.id})">${ui['courses.add_cart_btn'] || 'Add to Cart'}</button>`;
+    }
+    return `
+    <div class="course-card">
+      <div class="cc-stripe ${stripeClass(c.tag)}"></div>
+      <div class="cc-body">
+        <span class="cc-tag">${c.tag || 'Course'}</span>
+        <h3 class="cc-name">${c.name}</h3>
+        <div class="cc-batch">${c.batch_name || ''}</div>
+        <div class="cc-meta">
+          <div class="cc-meta-item">⏱ ${c.duration || ''}</div>
+          <div class="cc-meta-item">🗓 ${c.schedule || ''}</div>
+        </div>
+        <p class="cc-desc">${c.description || ''}</p>
+      </div>
+      <div class="cc-footer">
+        <div class="cc-price">
+          ₹${Number(c.price).toLocaleString('en-IN')}
+          <small>${ui['courses.price_suffix'] || 'per course'}</small>
+        </div>
+        <span class="cc-seats ${seatsClass}">${seatsLabel}</span>
+      </div>
+      <div class="cc-action">${actionBtn}</div>
+    </div>`;
+  }).join('');
+}
+
+function addToCart(id) {
+  const course = courses.find(c => c.id === id);
+  if (!course) return;
+  if (cart.find(i => i.id === id)) { toast('Already in your cart'); return; }
+  cart.push(course);
+  sessionStorage.setItem('cart', JSON.stringify(cart));
+  updateBadge();
+  renderCourses();
+  toast('Added to cart 🎉', 'success');
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(c => c.id !== id);
+  sessionStorage.setItem('cart', JSON.stringify(cart));
+  updateBadge();
+  renderCart();
+}
+
+function updateBadge() {
+  document.getElementById('cartBadge').textContent = cart.length;
+}
+
+// ══════════════════════════════════════
+// CART
+// ══════════════════════════════════════
+function renderCart() {
+  const wrap = document.getElementById('cartWrap');
+  if (!cart.length) {
+    wrap.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🛒</div>
+        <h3 class="empty-title">${ui['cart.empty_title'] || 'Nothing here yet'}</h3>
+        <p class="empty-sub">${ui['cart.empty_sub'] || 'Browse courses and pick one you love.'}</p>
+        <button class="btn btn-teal" onclick="show('home')">${ui['cart.empty_cta'] || 'Browse Courses'}</button>
+      </div>`;
+    return;
+  }
+  const total = cart.reduce((s, c) => s + c.price, 0);
+  wrap.innerHTML = cart.map(c => `
+    <div class="cart-item">
+      <div class="ci-info">
+        <h4>${c.name}</h4>
+        <p>${c.batch_name || ''} · ${c.schedule || ''}</p>
+      </div>
+      <div class="ci-right">
+        <span class="ci-price">₹${Number(c.price).toLocaleString('en-IN')}</span>
+        <button class="btn-remove" onclick="removeFromCart(${c.id})">${ui['cart.remove_btn'] || 'Remove'}</button>
+      </div>
+    </div>`).join('') + `
+    <div class="cart-summary">
+      ${cart.map(c => `<div class="summary-line"><span>${c.name}</span><span>₹${Number(c.price).toLocaleString('en-IN')}</span></div>`).join('')}
+      <div class="summary-total">
+        <span>${ui['cart.total_label'] || 'Total payable'}</span>
+        <span>₹${total.toLocaleString('en-IN')}</span>
+      </div>
+      <button class="btn btn-amber btn-full" style="margin-top:20px" onclick="show('payment')">
+        ${ui['cart.proceed_btn'] || 'Proceed to Payment →'}
+      </button>
+    </div>`;
+}
+
+// ══════════════════════════════════════
+// PAYMENT
+// ══════════════════════════════════════
+function renderPaymentPage() {
+  if (!cart.length) { show('cart'); return; }
+  const total = cart.reduce((s, c) => s + c.price, 0);
+  document.getElementById('payTotal').textContent = '₹' + total.toLocaleString('en-IN');
+
+  // UPI ID
+  const upiId = settings.upi_id || 'your-upi@bank';
+  document.getElementById('qrUpiId').textContent = upiId;
+
+  // QR image
+  const qrImg = document.getElementById('qrImg');
+  if (settings.qr_image_url) {
+    qrImg.src = settings.qr_image_url;
+  } else {
+    const upiStr = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(settings.upi_name || 'DheeWellnessHub')}&am=${total}&cu=INR`;
+    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=164x164&data=${encodeURIComponent(upiStr)}`;
+  }
+
+  document.getElementById('p_date').valueAsDate = new Date();
+}
+
+async function submitPayment() {
+  const name  = document.getElementById('p_name').value.trim();
+  const email = document.getElementById('p_email').value.trim();
+  const phone = document.getElementById('p_phone').value.trim();
+  const utr   = document.getElementById('p_utr').value.trim();
+  const date  = document.getElementById('p_date').value;
+
+  if (!name || !email || !phone || !utr || !date) { toast('Please fill all fields', 'error'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))   { toast('Invalid email', 'error'); return; }
+  if (!/^\d{10}$/.test(phone.replace(/\s/g,'')))   { toast('Enter a valid 10-digit phone', 'error'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.querySelector('[data-ui]').textContent = ui['payment.submitting_btn'] || 'Submitting…';
+
+  try {
+    const res = await fetch(`${API}/api/submit-payment`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        student_name: name, email, phone, utr,
+        payment_date: date,
+        amount: cart.reduce((s, c) => s + c.price, 0),
+        course_ids: cart.map(c => c.id),
+        course_names: cart.map(c => c.name).join(', '),
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Submission failed');
+
+    // Clear cart
+    cart = [];
+    sessionStorage.removeItem('cart');
+    updateBadge();
+    show('status');
+  } catch (err) {
+    toast(err.message || 'Something went wrong', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.querySelector('[data-ui]').textContent = ui['payment.submit_btn'] || 'Submit Payment';
+  }
+}
+
+// ══════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════
+let _toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.className = '', 3200);
+}
+
+// ══════════════════════════════════════
+// START
+// ══════════════════════════════════════
+boot();
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "DheeWellnessHub",
+  "version": "1.0.0",
+  "description": "DheeWellnessHub – Course enrollment platform",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}

@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — DheeWellnessHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal:       #0f766e;
+  --teal-dark:  #0d5f58;
+  --teal-mid:   #14b8a6;
+  --teal-light: #ccfbf1;
+  --charcoal:   #111827;
+  --charcoal-2: #1f2937;
+  --charcoal-3: #374151;
+  --amber:      #f59e0b;
+  --sand:       #f9fafb;
+  --white:      #ffffff;
+  --muted:      #6b7280;
+  --border:     #e5e7eb;
+  --green:      #059669; --green-bg: #d1fae5;
+  --red:        #dc2626; --red-bg:   #fee2e2;
+  --yellow:     #d97706; --yellow-bg:#fef3c7;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.09);
+  --r:          10px; --r-lg: 16px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--sand); color: var(--charcoal); }
+
+/* ── VIEWS ── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── LOADER ── */
+#adminLoader {
+  position: fixed; inset: 0; background: var(--charcoal);
+  display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+  z-index: 9999; transition: opacity 0.4s, visibility 0.4s;
+}
+#adminLoader.hidden { opacity: 0; visibility: hidden; }
+.l-logo { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: white; }
+.l-logo em { color: var(--teal-mid); font-style: normal; }
+.l-bar { width: 100px; height: 2px; background: rgba(255,255,255,0.1); border-radius: 999px; overflow: hidden; }
+.l-bar::after { content:''; display:block; height:100%; width:40%; background: var(--teal-mid); border-radius: 999px; animation: ls 1.2s ease-in-out infinite; }
+@keyframes ls { 0%{transform:translateX(-100%)} 100%{transform:translateX(350%)} }
+
+/* ══════════════════
+   LOGIN VIEW
+══════════════════ */
+.login-shell {
+  min-height: 100vh; display: flex;
+  align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--charcoal) 0%, var(--charcoal-2) 100%);
+  padding: 24px;
+}
+.login-card {
+  background: white; border-radius: var(--r-lg);
+  padding: 40px 36px; width: 100%; max-width: 380px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+}
+.login-card .logo { font-family:'DM Serif Display',serif; font-size:1.5rem; text-align:center; margin-bottom:4px; }
+.login-card .logo em { color: var(--teal); font-style:normal; }
+.login-card .sub { text-align:center; color:var(--muted); font-size:0.82rem; margin-bottom:28px; }
+.login-hint { text-align:center; margin-top:12px; font-size:0.75rem; color:var(--muted); }
+.field { margin-bottom:14px; }
+.field label { display:block; font-size:0.78rem; font-weight:600; margin-bottom:5px; color:var(--charcoal-2); }
+.field input, .field select, .field textarea {
+  width:100%; border:1.5px solid var(--border); border-radius:var(--r);
+  padding:10px 13px; font-family:'DM Sans',sans-serif; font-size:0.875rem;
+  background:var(--sand); color:var(--charcoal); outline:none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field textarea { resize:vertical; min-height:72px; }
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color:var(--teal); background:white;
+  box-shadow:0 0 0 3px rgba(15,118,110,0.1);
+}
+.field input::placeholder, .field textarea::placeholder { color:#bbb; }
+
+/* ══════════════════
+   ADMIN SHELL
+══════════════════ */
+.admin-shell { display:flex; min-height:100vh; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 230px; flex-shrink: 0;
+  background: var(--charcoal);
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+.sb-logo {
+  padding: 20px 18px 14px;
+  font-family:'DM Serif Display',serif; font-size:1.15rem; color:white;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.sb-logo em { color:var(--teal-mid); font-style:normal; }
+.sb-logo .sb-role { font-family:'DM Sans',sans-serif; font-size:0.65rem; color:rgba(255,255,255,0.3); letter-spacing:0.08em; text-transform:uppercase; margin-top:2px; }
+.sb-nav { flex:1; padding:12px 10px; }
+.sb-section { margin-bottom:20px; }
+.sb-sec-label { font-size:0.62rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.3); padding:0 8px; margin-bottom:6px; }
+.sb-item {
+  display:flex; align-items:center; gap:9px;
+  padding:9px 10px; border-radius:8px; cursor:pointer;
+  color:rgba(255,255,255,0.6); font-size:0.83rem; font-weight:500;
+  transition:all 0.15s; position:relative; margin-bottom:2px;
+}
+.sb-item:hover { background:rgba(255,255,255,0.07); color:white; }
+.sb-item.active { background:rgba(20,184,166,0.15); color:white; border:1px solid rgba(20,184,166,0.2); }
+.sb-item .sb-badge { margin-left:auto; background:var(--amber); color:var(--charcoal); border-radius:999px; padding:1px 7px; font-size:0.65rem; font-weight:800; }
+.sb-footer { padding:14px 10px; border-top:1px solid rgba(255,255,255,0.06); }
+
+/* MAIN */
+.admin-main { flex:1; overflow:auto; }
+.admin-topbar {
+  background:white; border-bottom:1px solid var(--border);
+  padding:0 28px; height:56px;
+  display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:100;
+}
+.topbar-title { font-family:'DM Serif Display',serif; font-size:1.15rem; }
+.topbar-right { display:flex; gap:8px; align-items:center; }
+.admin-content { padding:28px; }
+
+/* ══════════════════
+   BUTTONS
+══════════════════ */
+.btn { display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-family:'DM Sans',sans-serif; border:none; border-radius:var(--r); transition:all 0.15s; font-weight:600; }
+.btn:disabled { opacity:0.5; cursor:not-allowed; }
+.btn-teal   { background:var(--teal); color:white; padding:9px 18px; font-size:0.83rem; }
+.btn-teal:hover:not(:disabled)   { background:var(--teal-dark); }
+.btn-amber  { background:var(--amber); color:var(--charcoal); padding:9px 18px; font-size:0.83rem; font-weight:700; }
+.btn-amber:hover:not(:disabled)  { background:#e08b05; }
+.btn-ghost  { background:transparent; border:1.5px solid var(--border); color:var(--charcoal); padding:8px 16px; font-size:0.83rem; }
+.btn-ghost:hover { border-color:var(--charcoal); }
+.btn-danger { background:var(--red-bg); color:var(--red); padding:6px 12px; font-size:0.78rem; }
+.btn-danger:hover { background:#fca5a5; }
+.btn-verify { background:var(--green-bg); color:var(--green); padding:5px 11px; font-size:0.78rem; }
+.btn-verify:hover { background:#6ee7b7; }
+.btn-reject-sm { background:var(--red-bg); color:var(--red); padding:5px 11px; font-size:0.78rem; }
+.btn-reject-sm:hover { background:#fca5a5; }
+.btn-sm { padding:6px 12px !important; font-size:0.78rem !important; }
+.btn-full { width:100%; justify-content:center; }
+
+/* ══════════════════
+   SECTIONS
+══════════════════ */
+.admin-section { display:none; }
+.admin-section.active { display:block; }
+
+.section-head { margin-bottom:24px; display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+.sh-text h2 { font-family:'DM Serif Display',serif; font-size:1.4rem; margin-bottom:3px; }
+.sh-text p  { color:var(--muted); font-size:0.83rem; }
+
+/* ══════════════════
+   STAT CARDS
+══════════════════ */
+.stat-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:28px; }
+@media (max-width:900px) { .stat-row { grid-template-columns:repeat(2,1fr); } }
+.stat-card { background:white; border:1px solid var(--border); border-radius:var(--r); padding:18px 20px; box-shadow:var(--shadow-sm); }
+.stat-card.dark { background:var(--charcoal); border-color:var(--charcoal); }
+.sc-label { font-size:0.72rem; font-weight:600; color:var(--muted); margin-bottom:6px; letter-spacing:0.04em; text-transform:uppercase; }
+.stat-card.dark .sc-label { color:rgba(255,255,255,0.45); }
+.sc-value { font-family:'DM Serif Display',serif; font-size:1.8rem; color:var(--charcoal); }
+.stat-card.dark .sc-value { color:white; }
+.sc-sub { font-size:0.72rem; color:var(--muted); margin-top:3px; }
+.stat-card.dark .sc-sub { color:rgba(255,255,255,0.35); }
+
+/* ══════════════════
+   TABLE
+══════════════════ */
+.table-card { background:white; border:1px solid var(--border); border-radius:var(--r-lg); overflow:hidden; box-shadow:var(--shadow-sm); }
+.tc-head { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.tc-head h3 { font-size:0.95rem; font-weight:700; }
+.table-scroll { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; }
+thead th { text-align:left; padding:10px 16px; font-size:0.72rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); background:var(--sand); border-bottom:1px solid var(--border); white-space:nowrap; }
+tbody td { padding:12px 16px; font-size:0.83rem; border-bottom:1px solid var(--border); vertical-align:middle; }
+tbody tr:last-child td { border-bottom:none; }
+tbody tr:hover td { background:#f9fafb; }
+.td-name strong { display:block; font-weight:600; }
+.td-name span { font-size:0.75rem; color:var(--muted); }
+.action-row { display:flex; gap:5px; flex-wrap:wrap; }
+
+/* ══════════════════
+   BADGES
+══════════════════ */
+.badge { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:999px; font-size:0.72rem; font-weight:700; }
+.b-pending  { background:var(--yellow-bg); color:var(--yellow); }
+.b-verified { background:var(--green-bg);  color:var(--green); }
+.b-rejected { background:var(--red-bg);    color:var(--red); }
+.b-open     { background:var(--teal-light);color:var(--teal); }
+.b-full     { background:var(--red-bg);    color:var(--red); }
+
+/* ══════════════════
+   MODAL
+══════════════════ */
+.overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); backdrop-filter:blur(3px); z-index:1000; align-items:center; justify-content:center; padding:16px; }
+.overlay.open { display:flex; }
+.modal-box { background:white; border-radius:var(--r-lg); padding:28px; width:100%; max-width:540px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+.modal-box h3 { font-family:'DM Serif Display',serif; font-size:1.2rem; margin-bottom:20px; }
+.modal-footer { display:flex; gap:10px; justify-content:flex-end; margin-top:24px; padding-top:20px; border-top:1px solid var(--border); }
+
+/* ══════════════════
+   UI CONTENT EDITOR
+══════════════════ */
+.ui-editor { display:flex; flex-direction:column; gap:0; }
+.uie-section { border:1px solid var(--border); border-radius:var(--r); overflow:hidden; margin-bottom:14px; }
+.uie-section-header {
+  background:var(--sand); padding:12px 16px;
+  display:flex; align-items:center; justify-content:space-between; cursor:pointer;
+  border-bottom:1px solid var(--border);
+}
+.uie-section-header h4 { font-size:0.83rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--charcoal-2); }
+.uie-section-header .toggle { color:var(--muted); font-size:0.8rem; }
+.uie-rows { display:none; }
+.uie-rows.open { display:block; }
+.uie-row {
+  display:grid; grid-template-columns:200px 1fr auto;
+  gap:12px; align-items:start;
+  padding:12px 16px; border-bottom:1px solid var(--border);
+}
+.uie-row:last-child { border-bottom:none; }
+.uie-key { font-size:0.75rem; color:var(--muted); font-family:monospace; padding-top:6px; word-break:break-all; }
+.uie-desc { font-size:0.7rem; color:var(--muted); margin-top:2px; font-style:italic; }
+.uie-input {
+  width:100%; border:1.5px solid var(--border); border-radius:8px;
+  padding:7px 10px; font-family:'DM Sans',sans-serif; font-size:0.83rem;
+  background:white; outline:none; transition:border-color 0.15s;
+  resize:vertical; min-height:34px;
+}
+.uie-input:focus { border-color:var(--teal); box-shadow:0 0 0 2px rgba(15,118,110,0.1); }
+.uie-save-btn {
+  background:var(--teal-light); color:var(--teal);
+  border:none; border-radius:7px; padding:5px 10px;
+  font-size:0.73rem; font-weight:700; cursor:pointer; white-space:nowrap;
+  transition:background 0.15s;
+}
+.uie-save-btn:hover { background:#99f6e4; }
+.uie-save-btn.saved { background:var(--green-bg); color:var(--green); }
+
+/* ══════════════════
+   SETTINGS GRID
+══════════════════ */
+.settings-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+@media (max-width:700px) { .settings-grid { grid-template-columns:1fr; } }
+.settings-card { background:white; border:1px solid var(--border); border-radius:var(--r-lg); padding:24px; box-shadow:var(--shadow-sm); }
+.settings-card h3 { font-family:'DM Serif Display',serif; font-size:1rem; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+
+/* ══════════════════
+   FILTER BAR
+══════════════════ */
+.filter-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+.fb-btn { background:transparent; border:1.5px solid var(--border); border-radius:20px; padding:5px 14px; font-family:'DM Sans',sans-serif; font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.15s; color:var(--muted); }
+.fb-btn.active, .fb-btn:hover { border-color:var(--teal); color:var(--teal); background:var(--teal-light); }
+
+/* ══════════════════
+   TOAST
+══════════════════ */
+#aToast { position:fixed; bottom:24px; right:24px; background:var(--charcoal); color:white; padding:10px 18px; border-radius:var(--r); font-size:0.83rem; font-weight:500; box-shadow:var(--shadow-md); transform:translateY(60px); opacity:0; transition:all 0.25s; z-index:9999; max-width:300px; }
+#aToast.show { transform:translateY(0); opacity:1; }
+#aToast.ok  { background:var(--green); }
+#aToast.err { background:var(--red); }
+
+/* ══════════════════
+   PAYMENT DETAIL
+══════════════════ */
+.detail-row { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:0.875rem; }
+.detail-row:last-child { border-bottom:none; }
+.detail-row .dk { color:var(--muted); font-size:0.8rem; }
+.detail-row .dv { font-weight:600; text-align:right; max-width:260px; word-break:break-all; }
+
+@media (max-width:768px) {
+  .sidebar { display:none; }
+  .uie-row { grid-template-columns:1fr; }
+  .stat-row { grid-template-columns:1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div id="adminLoader"><div class="l-logo">Edu<em>Enroll</em> Admin</div><div class="l-bar"></div></div>
+<div id="aToast"></div>
+
+<!-- MODALS -->
+<div class="overlay" id="courseModal">
+  <div class="modal-box">
+    <h3 id="courseModalTitle">Add Course</h3>
+    <div class="field"><label>Course Name *</label><input id="cm_name" type="text" placeholder="e.g. Full Stack Web Development"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label>Category / Tag</label><input id="cm_tag" type="text" placeholder="Web Dev"></div>
+      <div class="field"><label>Batch Name</label><input id="cm_batch" type="text" placeholder="Batch 14 – July 2025"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label>Start Date</label><input id="cm_start" type="date"></div>
+      <div class="field"><label>End Date</label><input id="cm_end" type="date"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label>Duration</label><input id="cm_dur" type="text" placeholder="3 months"></div>
+      <div class="field"><label>Schedule</label><input id="cm_sched" type="text" placeholder="Mon, Wed – 7 PM IST"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label>Price (₹) *</label><input id="cm_price" type="number" placeholder="7999"></div>
+      <div class="field"><label>Total Seats</label><input id="cm_seats" type="number" placeholder="30"></div>
+    </div>
+    <div class="field"><label>Description</label><textarea id="cm_desc" placeholder="Short course description"></textarea></div>
+    <div class="field"><label>WhatsApp Group Link</label><input id="cm_wa" type="url" placeholder="https://chat.whatsapp.com/..."></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('courseModal')">Cancel</button>
+      <button class="btn btn-amber" onclick="saveCourse()">Save Course</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="paymentModal">
+  <div class="modal-box">
+    <h3>Payment Details</h3>
+    <div id="paymentModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('paymentModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════
+     LOGIN VIEW
+══════════════════ -->
+<div id="view-login" class="view active">
+  <div class="login-shell">
+    <div class="login-card">
+      <div class="logo">Edu<em>Enroll</em></div>
+      <div class="sub">Admin dashboard</div>
+      <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="admin@example.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn btn-teal btn-full" onclick="doLogin()" style="margin-top:4px">Sign In →</button>
+      <div class="login-hint" id="loginHint">Demo credentials pre-filled</div>
+      <div style="margin-top:16px;text-align:center">
+        <a href="index.html" style="font-size:0.78rem;color:var(--muted)">← Back to student site</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════
+     ADMIN VIEW
+══════════════════ -->
+<div id="view-admin" class="view">
+  <div class="admin-shell">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sb-logo">
+        Edu<em>Enroll</em>
+        <div class="sb-role">Admin Panel</div>
+      </div>
+      <nav class="sb-nav">
+        <div class="sb-section">
+          <div class="sb-sec-label">Overview</div>
+          <div class="sb-item active" data-section="dashboard">📊 Dashboard</div>
+        </div>
+        <div class="sb-section">
+          <div class="sb-sec-label">Operations</div>
+          <div class="sb-item" data-section="payments">💳 Payments <span class="sb-badge" id="pendingCount">0</span></div>
+          <div class="sb-item" data-section="enrollments">🎓 Enrollments</div>
+        </div>
+        <div class="sb-section">
+          <div class="sb-sec-label">Content</div>
+          <div class="sb-item" data-section="courses">📚 Courses</div>
+          <div class="sb-item" data-section="ui-editor">✏️ UI Labels</div>
+        </div>
+        <div class="sb-section">
+          <div class="sb-sec-label">Config</div>
+          <div class="sb-item" data-section="settings">⚙️ Settings</div>
+        </div>
+      </nav>
+      <div class="sb-footer">
+        <button class="btn btn-ghost btn-sm btn-full" onclick="doLogout()">Sign Out</button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="admin-main">
+      <div class="admin-topbar">
+        <span class="topbar-title" id="topbarTitle">Dashboard</span>
+        <div class="topbar-right">
+          <a href="index.html" target="_blank" class="btn btn-ghost btn-sm">View Site ↗</a>
+        </div>
+      </div>
+      <div class="admin-content">
+
+        <!-- DASHBOARD -->
+        <div id="sec-dashboard" class="admin-section active">
+          <div class="stat-row">
+            <div class="stat-card dark"><div class="sc-label">Total Payments</div><div class="sc-value" id="st-total">0</div><div class="sc-sub">All time</div></div>
+            <div class="stat-card"><div class="sc-label">Pending</div><div class="sc-value" id="st-pend" style="color:var(--yellow)">0</div><div class="sc-sub">Need review</div></div>
+            <div class="stat-card"><div class="sc-label">Verified</div><div class="sc-value" id="st-verif" style="color:var(--green)">0</div><div class="sc-sub">Confirmed</div></div>
+            <div class="stat-card"><div class="sc-label">Revenue</div><div class="sc-value" id="st-rev">₹0</div><div class="sc-sub">From verified</div></div>
+          </div>
+          <div class="table-card">
+            <div class="tc-head"><h3>Recent Payments</h3><button class="btn btn-teal btn-sm" onclick="switchSection('payments')">View all</button></div>
+            <div class="table-scroll"><table><thead><tr><th>Student</th><th>Courses</th><th>Amount</th><th>UTR</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="dashPayTbody"></tbody></table></div>
+          </div>
+        </div>
+
+        <!-- PAYMENTS -->
+        <div id="sec-payments" class="admin-section">
+          <div class="section-head">
+            <div class="sh-text"><h2>Payments</h2><p>Verify payments after checking your bank statement.</p></div>
+          </div>
+          <div class="filter-bar">
+            <button class="fb-btn active" data-filter="all" onclick="filterPayments(this,'all')">All</button>
+            <button class="fb-btn" data-filter="pending" onclick="filterPayments(this,'pending')">⏳ Pending</button>
+            <button class="fb-btn" data-filter="verified" onclick="filterPayments(this,'verified')">✅ Verified</button>
+            <button class="fb-btn" data-filter="rejected" onclick="filterPayments(this,'rejected')">❌ Rejected</button>
+          </div>
+          <div class="table-card">
+            <div class="table-scroll"><table><thead><tr><th>Date</th><th>Student</th><th>Courses</th><th>Amount</th><th>UTR</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="allPayTbody"></tbody></table></div>
+          </div>
+        </div>
+
+        <!-- ENROLLMENTS -->
+        <div id="sec-enrollments" class="admin-section">
+          <div class="section-head"><div class="sh-text"><h2>Enrollments</h2><p>Confirmed enrolled students.</p></div></div>
+          <div class="table-card">
+            <div class="table-scroll"><table><thead><tr><th>Student</th><th>Email</th><th>Phone</th><th>Course</th><th>Enrolled On</th><th>WhatsApp</th></tr></thead>
+            <tbody id="enrollTbody"></tbody></table></div>
+          </div>
+        </div>
+
+        <!-- COURSES -->
+        <div id="sec-courses" class="admin-section">
+          <div class="section-head">
+            <div class="sh-text"><h2>Courses</h2><p>Manage live batches.</p></div>
+            <button class="btn btn-amber" onclick="openCourseModal()">+ Add Course</button>
+          </div>
+          <div class="table-card">
+            <div class="table-scroll"><table><thead><tr><th>Course</th><th>Batch</th><th>Schedule</th><th>Price</th><th>Seats</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="coursesTbody"></tbody></table></div>
+          </div>
+        </div>
+
+        <!-- UI LABELS EDITOR -->
+        <div id="sec-ui-editor" class="admin-section">
+          <div class="section-head">
+            <div class="sh-text">
+              <h2>UI Labels &amp; Text</h2>
+              <p>Every piece of text shown on the student website. Edit and save individually.</p>
+            </div>
+            <button class="btn btn-teal" onclick="saveAllUI()">Save All Changes</button>
+          </div>
+          <div id="uiEditorRoot"></div>
+        </div>
+
+        <!-- SETTINGS -->
+        <div id="sec-settings" class="admin-section">
+          <div class="section-head"><div class="sh-text"><h2>Settings</h2><p>Payment config, branding, and credentials.</p></div></div>
+          <div class="settings-grid" id="settingsGrid"></div>
+        </div>
+
+      </div><!-- /admin-content -->
+    </div><!-- /admin-main -->
+  </div><!-- /admin-shell -->
+</div><!-- /view-admin -->
+
+<script>
+// ══════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════
+const API = '';  // e.g. 'https://your-site.netlify.app' — blank = same origin
+let adminToken = sessionStorage.getItem('adminToken') || '';
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let allPayments   = [];
+let allCourses    = [];
+let allEnrollments= [];
+let allUI         = [];   // raw array from DB: [{id, key, value, description, section}, ...]
+let allSettings   = [];   // raw array from DB
+let editingCourseId = null;
+let currentPayFilter = 'all';
+
+// ══════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════
+async function boot() {
+  // If token exists, skip login
+  if (adminToken) {
+    try { await loadAdminData(); showAdmin(); }
+    catch { adminToken = ''; sessionStorage.removeItem('adminToken'); }
+  }
+  // Pre-fill demo creds from public settings
+  try {
+    const r = await fetch(`${API}/api/public-data`);
+    const d = await r.json();
+    const hint = d.ui && d.ui['admin.demo_hint'];
+    if (hint) document.getElementById('loginHint').textContent = hint;
+    const adminEmail = d.settings && d.settings['admin_email'];
+    if (adminEmail) {
+      document.getElementById('loginEmail').value = adminEmail;
+      document.getElementById('loginPass').value  = 'admin123';
+    }
+  } catch {}
+  document.getElementById('adminLoader').classList.add('hidden');
+}
+
+async function loadAdminData() {
+  const r = await fetch(`${API}/api/admin-data`, { headers: { 'x-admin-token': adminToken } });
+  if (!r.ok) throw new Error('Unauthorized');
+  const d = await r.json();
+  allPayments    = d.payments    || [];
+  allCourses     = d.courses     || [];
+  allEnrollments = d.enrollments || [];
+  allUI          = d.ui          || [];
+  allSettings    = d.settings    || [];
+}
+
+// ══════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  if (!email || !pass) { aToast('Enter credentials', 'err'); return; }
+  try {
+    const r = await fetch(`${API}/api/admin-login`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass }),
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Login failed');
+    adminToken = d.token;
+    sessionStorage.setItem('adminToken', adminToken);
+    await loadAdminData();
+    showAdmin();
+  } catch (e) { aToast(e.message, 'err'); }
+}
+
+function doLogout() {
+  adminToken = '';
+  sessionStorage.removeItem('adminToken');
+  show('login');
+  aToast('Signed out');
+}
+
+// ══════════════════════════════════════
+// VIEW SWITCHING
+// ══════════════════════════════════════
+function show(v) {
+  document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
+  document.getElementById('view-' + v).classList.add('active');
+}
+
+function showAdmin() {
+  show('admin');
+  switchSection('dashboard');
+}
+
+function switchSection(name) {
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  const sbItem = document.querySelector(`.sb-item[data-section="${name}"]`);
+  if (sbItem) sbItem.classList.add('active');
+
+  // Section titles
+  const titles = { dashboard:'Dashboard', payments:'Payments', enrollments:'Enrollments', courses:'Courses', 'ui-editor':'UI Labels & Text', settings:'Settings' };
+  document.getElementById('topbarTitle').textContent = titles[name] || name;
+
+  renderSection(name);
+}
+
+// Sidebar clicks
+document.querySelectorAll('.sb-item[data-section]').forEach(el => {
+  el.addEventListener('click', () => switchSection(el.dataset.section));
+});
+
+function renderSection(name) {
+  if (name === 'dashboard')  renderDashboard();
+  if (name === 'payments')   renderPayments(currentPayFilter);
+  if (name === 'enrollments')renderEnrollments();
+  if (name === 'courses')    renderCourses();
+  if (name === 'ui-editor')  renderUIEditor();
+  if (name === 'settings')   renderSettings();
+}
+
+// ══════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════
+function renderDashboard() {
+  const pending  = allPayments.filter(p => p.status === 'pending');
+  const verified = allPayments.filter(p => p.status === 'verified');
+  const revenue  = verified.reduce((s, p) => s + p.amount, 0);
+  document.getElementById('st-total').textContent = allPayments.length;
+  document.getElementById('st-pend').textContent  = pending.length;
+  document.getElementById('st-verif').textContent = verified.length;
+  document.getElementById('st-rev').textContent   = '₹' + revenue.toLocaleString('en-IN');
+  document.getElementById('pendingCount').textContent = pending.length;
+
+  const recent = [...allPayments].slice(0, 6);
+  document.getElementById('dashPayTbody').innerHTML = recent.length
+    ? recent.map(p => payRow(p, true)).join('')
+    : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">No payments yet</td></tr>';
+}
+
+// ══════════════════════════════════════
+// PAYMENTS
+// ══════════════════════════════════════
+function renderPayments(filter = 'all') {
+  const list = filter === 'all' ? allPayments : allPayments.filter(p => p.status === filter);
+  document.getElementById('allPayTbody').innerHTML = list.length
+    ? list.map(p => payRow(p, false)).join('')
+    : `<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--muted)">No ${filter === 'all' ? '' : filter} payments</td></tr>`;
+}
+
+function filterPayments(btn, filter) {
+  currentPayFilter = filter;
+  document.querySelectorAll('.fb-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPayments(filter);
+}
+
+function payRow(p, compact) {
+  const d = new Date(p.submitted_at).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'2-digit' });
+  return `<tr>
+    ${!compact ? `<td style="font-size:0.75rem;color:var(--muted);white-space:nowrap">${d}</td>` : ''}
+    <td class="td-name"><strong>${p.student_name}</strong><span>${p.email}</span></td>
+    <td style="font-size:0.78rem;max-width:160px">${p.course_names || '—'}</td>
+    <td><strong>₹${Number(p.amount).toLocaleString('en-IN')}</strong></td>
+    <td><code style="font-size:0.75rem;background:var(--sand);padding:2px 6px;border-radius:5px">${p.utr}</code></td>
+    <td><span class="badge b-${p.status}">${p.status === 'pending' ? '⏳' : p.status === 'verified' ? '✅' : '❌'} ${p.status}</span></td>
+    <td>
+      <div class="action-row">
+        ${p.status === 'pending' ? `
+          <button class="btn btn-verify" onclick="verifyPay(${p.id})">Verify</button>
+          <button class="btn btn-reject-sm" onclick="rejectPay(${p.id})">Reject</button>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="viewPayDetail(${p.id})">View</button>
+      </div>
+    </td>
+  </tr>`;
+}
+
+async function verifyPay(id) {
+  await adminAction('verify_payment', { id });
+  await reload();
+  aToast('✅ Verified — enrollment created', 'ok');
+}
+async function rejectPay(id) {
+  if (!confirm('Reject this payment?')) return;
+  await adminAction('reject_payment', { id });
+  await reload();
+  aToast('Payment rejected');
+}
+
+function viewPayDetail(id) {
+  const p = allPayments.find(x => x.id === id);
+  if (!p) return;
+  const rows = [
+    ['Student', p.student_name], ['Email', p.email], ['Phone', p.phone],
+    ['UTR / Txn ID', `<code>${p.utr}</code>`],
+    ['Payment Date', p.payment_date],
+    ['Courses', p.course_names || '—'],
+    ['Amount', `<strong>₹${Number(p.amount).toLocaleString('en-IN')}</strong>`],
+    ['Status', `<span class="badge b-${p.status}">${p.status}</span>`],
+    ['Submitted', new Date(p.submitted_at).toLocaleString('en-IN')],
+    p.admin_note ? ['Note', p.admin_note] : null,
+  ].filter(Boolean);
+  document.getElementById('paymentModalBody').innerHTML =
+    rows.map(([k,v]) => `<div class="detail-row"><span class="dk">${k}</span><span class="dv">${v}</span></div>`).join('') +
+    (p.status === 'pending' ? `<div style="display:flex;gap:8px;margin-top:20px">
+      <button class="btn btn-verify" onclick="verifyPay(${p.id});closeModal('paymentModal')">Verify</button>
+      <button class="btn btn-reject-sm" onclick="rejectPay(${p.id});closeModal('paymentModal')">Reject</button>
+    </div>` : '');
+  openModal('paymentModal');
+}
+
+// ══════════════════════════════════════
+// ENROLLMENTS
+// ══════════════════════════════════════
+function renderEnrollments() {
+  const tbody = document.getElementById('enrollTbody');
+  if (!allEnrollments.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--muted)">No enrollments yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allEnrollments.map(e => {
+    const d = new Date(e.enrolled_at).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+    return `<tr>
+      <td class="td-name"><strong>${e.student_name}</strong></td>
+      <td style="font-size:0.8rem">${e.email}</td>
+      <td style="font-size:0.8rem">${e.phone}</td>
+      <td style="font-size:0.8rem">${e.course_name || '—'}</td>
+      <td style="font-size:0.8rem;white-space:nowrap">${d}</td>
+      <td>${e.whatsapp_link ? `<a href="${e.whatsapp_link}" target="_blank" class="btn btn-verify btn-sm">Join ↗</a>` : '<span style="color:var(--muted);font-size:0.75rem">Not set</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// COURSES
+// ══════════════════════════════════════
+function renderCourses() {
+  const tbody = document.getElementById('coursesTbody');
+  if (!allCourses.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--muted)">No courses yet. Add your first one!</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allCourses.map(c => {
+    const left = c.total_seats - c.enrolled;
+    return `<tr>
+      <td class="td-name"><strong>${c.name}</strong><span>${c.tag || ''}</span></td>
+      <td style="font-size:0.78rem">${c.batch_name || '—'}</td>
+      <td style="font-size:0.78rem;max-width:140px">${c.schedule || '—'}</td>
+      <td><strong>₹${Number(c.price).toLocaleString('en-IN')}</strong></td>
+      <td style="font-size:0.8rem">${c.enrolled}/${c.total_seats} <span style="color:var(--muted)">(${left} left)</span></td>
+      <td><span class="badge ${left <= 0 ? 'b-full' : 'b-open'}">${left <= 0 ? 'Full' : 'Open'}</span></td>
+      <td>
+        <div class="action-row">
+          <button class="btn btn-ghost btn-sm" onclick="openCourseModal(${c.id})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCourse(${c.id})">Delete</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openCourseModal(id) {
+  editingCourseId = id || null;
+  document.getElementById('courseModalTitle').textContent = id ? 'Edit Course' : 'Add Course';
+  if (id) {
+    const c = allCourses.find(x => x.id === id);
+    if (!c) return;
+    document.getElementById('cm_name').value  = c.name || '';
+    document.getElementById('cm_tag').value   = c.tag || '';
+    document.getElementById('cm_batch').value = c.batch_name || '';
+    document.getElementById('cm_start').value = c.start_date || '';
+    document.getElementById('cm_end').value   = c.end_date || '';
+    document.getElementById('cm_dur').value   = c.duration || '';
+    document.getElementById('cm_sched').value = c.schedule || '';
+    document.getElementById('cm_price').value = c.price || '';
+    document.getElementById('cm_seats').value = c.total_seats || '';
+    document.getElementById('cm_desc').value  = c.description || '';
+    document.getElementById('cm_wa').value    = c.whatsapp_link || '';
+  } else {
+    ['cm_name','cm_tag','cm_batch','cm_start','cm_end','cm_dur','cm_sched','cm_price','cm_seats','cm_desc','cm_wa']
+      .forEach(id => document.getElementById(id).value = '');
+  }
+  openModal('courseModal');
+}
+
+async function saveCourse() {
+  const name = document.getElementById('cm_name').value.trim();
+  if (!name) { aToast('Course name is required', 'err'); return; }
+  const payload = {
+    name, tag: document.getElementById('cm_tag').value.trim(),
+    batch_name: document.getElementById('cm_batch').value.trim(),
+    start_date: document.getElementById('cm_start').value || null,
+    end_date:   document.getElementById('cm_end').value || null,
+    duration:   document.getElementById('cm_dur').value.trim(),
+    schedule:   document.getElementById('cm_sched').value.trim(),
+    price:      parseInt(document.getElementById('cm_price').value) || 0,
+    total_seats:parseInt(document.getElementById('cm_seats').value) || 30,
+    description:document.getElementById('cm_desc').value.trim(),
+    whatsapp_link: document.getElementById('cm_wa').value.trim(),
+    is_active: true,
+  };
+  if (editingCourseId) payload.id = editingCourseId;
+  await adminAction(editingCourseId ? 'update_course' : 'create_course', payload);
+  await reload(); closeModal('courseModal');
+  aToast(editingCourseId ? 'Course updated ✓' : 'Course created ✓', 'ok');
+  renderCourses();
+}
+
+async function deleteCourse(id) {
+  if (!confirm('Remove this course from the site?')) return;
+  await adminAction('delete_course', { id });
+  await reload(); renderCourses();
+  aToast('Course removed');
+}
+
+// ══════════════════════════════════════
+// UI CONTENT EDITOR
+// ══════════════════════════════════════
+function renderUIEditor() {
+  // Group by section
+  const sections = {};
+  allUI.forEach(row => {
+    if (!sections[row.section]) sections[row.section] = [];
+    sections[row.section].push(row);
+  });
+
+  const sectionOrder = ['nav','hero','courses','cart','payment','status','footer','admin'];
+  const sectionLabels = {
+    nav:'Navigation', hero:'Hero Section', courses:'Courses Page',
+    cart:'Cart Page', payment:'Payment Page', status:'Status Page',
+    footer:'Footer', admin:'Admin Labels',
+  };
+
+  const ordered = sectionOrder.filter(s => sections[s]);
+  const rest = Object.keys(sections).filter(s => !sectionOrder.includes(s));
+
+  document.getElementById('uiEditorRoot').innerHTML = [...ordered, ...rest].map(sec => `
+    <div class="uie-section">
+      <div class="uie-section-header" onclick="toggleSection(this)">
+        <h4>${sectionLabels[sec] || sec}</h4>
+        <span class="toggle">▼</span>
+      </div>
+      <div class="uie-rows open">
+        ${(sections[sec] || []).map(row => `
+          <div class="uie-row" data-key="${row.key}">
+            <div>
+              <div class="uie-key">${row.key}</div>
+              ${row.description ? `<div class="uie-desc">${row.description}</div>` : ''}
+            </div>
+            <textarea class="uie-input" rows="1" data-original="${escHtml(row.value)}">${escHtml(row.value)}</textarea>
+            <button class="uie-save-btn" onclick="saveOneUI(this, '${row.key}')">Save</button>
+          </div>
+        `).join('')}
+      </div>
+    </div>`).join('');
+
+  // Auto-resize textareas
+  document.querySelectorAll('.uie-input').forEach(el => autoResize(el));
+  document.querySelectorAll('.uie-input').forEach(el => el.addEventListener('input', () => autoResize(el)));
+}
+
+function toggleSection(header) {
+  const rows = header.nextElementSibling;
+  rows.classList.toggle('open');
+  header.querySelector('.toggle').textContent = rows.classList.contains('open') ? '▼' : '▶';
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+async function saveOneUI(btn, key) {
+  const row = btn.closest('.uie-row');
+  const value = row.querySelector('.uie-input').value;
+  btn.textContent = '…';
+  btn.disabled = true;
+  try {
+    await adminAction('update_ui', { key, value });
+    // Update local state
+    const entry = allUI.find(u => u.key === key);
+    if (entry) entry.value = value;
+    btn.textContent = '✓ Saved';
+    btn.classList.add('saved');
+    setTimeout(() => { btn.textContent = 'Save'; btn.classList.remove('saved'); btn.disabled = false; }, 1800);
+  } catch (e) {
+    btn.textContent = 'Save'; btn.disabled = false;
+    aToast('Failed to save: ' + e.message, 'err');
+  }
+}
+
+async function saveAllUI() {
+  const updates = [];
+  document.querySelectorAll('.uie-row').forEach(row => {
+    const key = row.dataset.key;
+    const input = row.querySelector('.uie-input');
+    if (input.value !== input.dataset.original) {
+      updates.push({ key, value: input.value });
+    }
+  });
+  if (!updates.length) { aToast('No changes to save'); return; }
+  try {
+    await adminAction('bulk_update_ui', { updates });
+    updates.forEach(u => {
+      const entry = allUI.find(x => x.key === u.key);
+      if (entry) entry.value = u.value;
+    });
+    // Update originals
+    document.querySelectorAll('.uie-row').forEach(row => {
+      const input = row.querySelector('.uie-input');
+      input.dataset.original = input.value;
+    });
+    aToast(`✓ Saved ${updates.length} change${updates.length > 1 ? 's' : ''}`, 'ok');
+  } catch (e) { aToast('Bulk save failed: ' + e.message, 'err'); }
+}
+
+// ══════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════
+const SETTINGS_CONFIG = [
+  { group: '💳 Payment', keys: ['upi_id','upi_name','qr_image_url','bank_name'] },
+  { group: '🏷️ Branding', keys: ['site_name','logo_url','primary_color','accent_color'] },
+  { group: '👤 Admin Access', keys: ['admin_email','admin_password'] },
+  { group: '📧 Contact', keys: ['support_email','whatsapp_support'] },
+];
+
+function renderSettings() {
+  const map = Object.fromEntries(allSettings.map(s => [s.key, s]));
+  document.getElementById('settingsGrid').innerHTML = SETTINGS_CONFIG.map(group => `
+    <div class="settings-card">
+      <h3>${group.group}</h3>
+      ${group.keys.map(key => {
+        const s = map[key] || { key, value: '', description: '' };
+        const isPass = key.includes('password');
+        const isColor = key.includes('color');
+        return `<div class="field" style="margin-bottom:10px">
+          <label>${s.description || key}</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="${isPass ? 'password' : 'text'}" id="set_${key}" value="${escHtml(s.value || '')}" placeholder="${key}">
+            ${isColor ? `<input type="color" value="${s.value || '#000000'}" oninput="document.getElementById('set_${key}').value=this.value" style="width:36px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px">` : ''}
+          </div>
+        </div>`;
+      }).join('')}
+      <button class="btn btn-teal btn-sm" onclick="saveSettingsGroup(${JSON.stringify(group.keys)})">Save</button>
+    </div>`).join('');
+}
+
+async function saveSettingsGroup(keys) {
+  const updates = keys.map(key => ({
+    key, value: document.getElementById('set_' + key)?.value || ''
+  })).filter(u => u.value !== undefined);
+  await adminAction('bulk_update_settings', { updates });
+  updates.forEach(u => {
+    const s = allSettings.find(x => x.key === u.key);
+    if (s) s.value = u.value;
+  });
+  aToast('Settings saved ✓', 'ok');
+}
+
+// ══════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════
+async function adminAction(action, payload) {
+  const r = await fetch(`${API}/api/admin-action`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+    body: JSON.stringify({ action, payload }),
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error || 'Action failed');
+  return d;
+}
+
+async function reload() {
+  try { await loadAdminData(); } catch {}
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+function escHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let _at;
+function aToast(msg, type = '') {
+  const el = document.getElementById('aToast');
+  el.textContent = msg; el.className = 'show ' + type;
+  clearTimeout(_at); _at = setTimeout(() => el.className = '', 3200);
+}
+
+// ══════════════════════════════════════
+// START
+// ══════════════════════════════════════
+boot();
+</script>
+</body>
+</html>
