@@ -336,7 +336,7 @@ tbody tr:hover td { background:#f9fafb; }
       <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="admin@example.com"></div>
       <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <button class="btn btn-teal btn-full" onclick="doLogin()" style="margin-top:4px">Sign In →</button>
-      <div class="login-hint" id="loginHint">Demo credentials pre-filled</div>
+      <div class="login-hint" id="loginHint">Please contact admin</div>
       <div style="margin-top:16px;text-align:center">
         <a href="index.html" style="font-size:0.78rem;color:var(--muted)">← Back to student site</a>
       </div>
@@ -501,8 +501,8 @@ async function boot() {
     if (hint) document.getElementById('loginHint').textContent = hint;
     const adminEmail = d.settings && d.settings['admin_email'];
     if (adminEmail) {
-      document.getElementById('loginEmail').value = adminEmail;
-      document.getElementById('loginPass').value  = 'admin123';
+      //document.getElementById('loginEmail').value = adminEmail;
+      //document.getElementById('loginPass').value  = 'admin123';
     }
   } catch {}
   document.getElementById('adminLoader').classList.add('hidden');
