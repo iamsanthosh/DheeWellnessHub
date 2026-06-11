@@ -282,7 +282,7 @@ tbody tr:hover td { background:#f9fafb; }
 </head>
 <body>
 
-<div id="adminLoader"><div class="l-logo">Dhee<em>Wellness</em>Hub Admin</div><div class="l-bar"></div></div>
+<div id="adminLoader"><div class="l-logo" data-ui="nav.logo">DheeWellnessHub Admin</div><div class="l-bar"></div></div>
 <div id="aToast"></div>
 
 <!-- MODALS -->
@@ -331,7 +331,7 @@ tbody tr:hover td { background:#f9fafb; }
 <div id="view-login" class="view active">
   <div class="login-shell">
     <div class="login-card">
-      <div class="logo">Dhee<em>Wellness</em>Hub</div>
+      <div class="logo" data-ui="nav.logo">DheeWellnessHub</div>
       <div class="sub">Admin dashboard</div>
       <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="admin@example.com"></div>
       <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"></div>
@@ -352,8 +352,7 @@ tbody tr:hover td { background:#f9fafb; }
     <!-- SIDEBAR -->
     <aside class="sidebar">
       <div class="sb-logo">
-        Dhee<em>Wellness</em>Hub
-        <div class="sb-role">Admin Panel</div>
+        <div class="sb-logo" data-ui="nav.logo"></div><div class="sb-role">Admin Panel</div>
       </div>
       <nav class="sb-nav">
         <div class="sb-section">
