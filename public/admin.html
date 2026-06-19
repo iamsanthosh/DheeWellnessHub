@@ -226,6 +226,13 @@ tbody tr:hover td { background:#f9fafb; }
 .uie-row:last-child { border-bottom:none; }
 .uie-key { font-size:0.75rem; color:var(--muted); font-family:monospace; padding-top:6px; word-break:break-all; }
 .uie-desc { font-size:0.7rem; color:var(--muted); margin-top:2px; font-style:italic; }
+.uie-html-badge {
+  display:inline-block; margin-left:7px;
+  background:var(--teal-light); color:var(--teal-dark);
+  font-size:0.6rem; font-weight:700; letter-spacing:0.06em;
+  padding:1px 6px; border-radius:999px; vertical-align:middle;
+  font-family:'DM Sans',sans-serif; font-style:normal;
+}
 .uie-input {
   width:100%; border:1.5px solid var(--border); border-radius:8px;
   padding:7px 10px; font-family:'DM Sans',sans-serif; font-size:0.83rem;
@@ -784,6 +791,9 @@ async function deleteCourse(id) {
 // ══════════════════════════════════════
 // UI CONTENT EDITOR
 // ══════════════════════════════════════
+// Keys whose values are rendered as sanitized HTML on the student site
+const HTML_UI_KEYS = ['hero.subtitle'];
+
 function renderUIEditor() {
   // Group by section
   const sections = {};
@@ -812,10 +822,14 @@ function renderUIEditor() {
         ${(sections[sec] || []).map(row => `
           <div class="uie-row" data-key="${row.key}">
             <div>
-              <div class="uie-key">${row.key}</div>
+              <div class="uie-key">
+                ${row.key}
+                ${HTML_UI_KEYS.includes(row.key) ? '<span class="uie-html-badge" title="Supports HTML markup">HTML</span>' : ''}
+              </div>
               ${row.description ? `<div class="uie-desc">${row.description}</div>` : ''}
+              ${HTML_UI_KEYS.includes(row.key) ? `<div class="uie-desc" style="color:var(--teal)">✦ HTML is supported — e.g. <code>&lt;strong&gt;</code>, <code>&lt;em&gt;</code>, <code>&lt;a href=""&gt;</code>, <code>&lt;br&gt;</code></div>` : ''}
             </div>
-            <textarea class="uie-input" rows="1" data-original="${escHtml(row.value)}">${escHtml(row.value)}</textarea>
+            <textarea class="uie-input" rows="${HTML_UI_KEYS.includes(row.key) ? 3 : 1}" data-original="${escHtml(row.value)}">${escHtml(row.value)}</textarea>
             <button class="uie-save-btn" onclick="saveOneUI(this, '${row.key}')">Save</button>
           </div>
         `).join('')}

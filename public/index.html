@@ -473,7 +473,7 @@ body {
         <span data-ui="hero.title_line1">Skills that open</span><br>
         <em class="accent-word" data-ui="hero.title_line2">doors.</em>
       </h1>
-      <p class="hero-sub" data-ui="hero.subtitle">Expert-led live batches with hands-on projects.</p>
+      <p class="hero-sub" data-ui="hero.subtitle" data-html-ui="true">Expert-led live batches with hands-on projects.</p>
       <div class="hero-stats">
         <div class="hero-stat">
           <span class="hero-stat-val" data-ui="hero.stat1_value">1,200+</span>
@@ -642,6 +642,8 @@ body {
   </div>
 </div>
 
+<!-- DOMPurify: sanitizes HTML before injecting into the DOM -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <script>
 // ══════════════════════════════════════
 // CONFIG — set your Netlify site URL
@@ -685,10 +687,18 @@ async function boot() {
 // APPLY UI CONTENT to DOM
 // ══════════════════════════════════════
 function applyUI() {
-  // Text content
+  // Text content — plain text for all fields, sanitized HTML for data-html-ui="true" fields
   document.querySelectorAll('[data-ui]').forEach(el => {
     const key = el.getAttribute('data-ui');
-    if (ui[key] !== undefined) el.textContent = ui[key];
+    if (ui[key] === undefined) return;
+    if (el.getAttribute('data-html-ui') === 'true') {
+      // Sanitize with DOMPurify then inject as HTML
+      el.innerHTML = (typeof DOMPurify !== 'undefined')
+        ? DOMPurify.sanitize(ui[key])
+        : ui[key].replace(/</g, '&lt;').replace(/>/g, '&gt;'); // safe fallback if CDN fails
+    } else {
+      el.textContent = ui[key];
+    }
   });
   // Placeholder attributes
   document.querySelectorAll('[data-placeholder-ui]').forEach(el => {

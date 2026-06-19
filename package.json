@@ -6,7 +6,9 @@
     "dev": "netlify dev"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0"
+    "@supabase/supabase-js": "^2.39.0",
+    "html-react-parser": "^6.1.3",
+    "isomorphic-dompurify": "^3.17.0"
   },
   "devDependencies": {
     "netlify-cli": "^17.0.0"
