@@ -181,7 +181,7 @@ INSERT INTO site_settings (key, value, description) VALUES
 ('upi_name',         'DheeWellnessHub Academy',     'Account holder name shown on QR'),
 ('qr_image_url',     '',                      'Custom QR image URL (leave blank to auto-generate)'),
 ('bank_name',        'HDFC Bank',             'Bank name shown in payment instructions'),
-('admin_email',      'admin@DheeWellnessHub.com',   'Admin email for login and notifications'),
+('admin_email',      'dheewellnesshub@gmail.com',   'Admin email for login and notifications'),
 ('admin_password',   'admin123',              'Admin password (change in production!)'),
 ('site_name',        'DheeWellnessHub',             'Site name used in emails and title'),
 ('primary_color',    '#0f766e',               'Primary brand color (hex)'),
